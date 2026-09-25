@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>FlootNG Wallet - Connected to Driver Firebase</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--purple:#7C3AED;--purple2:#A78BFA;--light:#F5F3FF;--border:#EDE9FE;--dark:#1F1A2E;--muted:#8B8BA7}
+body{font-family:Inter,system-ui,sans-serif;background:#FBFAFF;color:var(--dark);min-height:100vh}
+.app{max-width:440px;margin:0 auto;min-height:100vh;background:#fff;position:relative;display:flex;flex-direction:column;box-shadow:0 0 0 1px #F3F0FF}
+.auth-bg{background:linear-gradient(180deg,#7C3AED 0%, #5B21B6 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:fixed;inset:0;z-index:9999;overflow:auto}
+.auth-card{width:100%;max-width:400px;background:#fff;border-radius:28px;padding:24px;box-shadow:0 20px 60px rgba(92,33,182,.3)}
+.logo{width:64px;height:64px;border-radius:16px;background:#fff;display:grid;place-items:center;margin:0 auto 12px;overflow:hidden}
+.input{width:100%;background:#F5F3FF;border:1px solid #EDE9FE;border-radius:14px;padding:14px 14px 14px 44px;font-size:14px;outline:none;margin-bottom:10px;color:#1F1A2E}
+.input:focus{border-color:#7C3AED;background:#fff}
+.input-wrap{position:relative}
+.input-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#A78BFA}
+.btn{width:100%;border:none;border-radius:14px;padding:14px;font-weight:800;font-size:14px;cursor:pointer}
+.btn-purple{background:linear-gradient(90deg,#7C3AED,#8B5CF6);color:#fff}
+.btn-ghost{background:#F5F3FF;color:#7C3AED;border:1px solid #EDE9FE}
+.tabs{display:flex;background:#F5F3FF;border-radius:12px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:10px;border-radius:10px;text-align:center;font-weight:800;font-size:13px;cursor:pointer;color:#8B8BA7}
+.tab.active{background:#fff;color:#7C3AED;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.small{font-size:11px;color:#8B8BA7}
+.card{background:#fff;border:1px solid #F3F0FF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(124,58,237,.06);margin-bottom:12px}
+.hero{background:linear-gradient(135deg,#7C3AED 0%, #A78BFA 100%);border-radius:24px;padding:20px;color:#fff}
+.otp-box{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.otp-input{width:42px;height:50px;border:2px solid #EDE9FE;border-radius:12px;text-align:center;font-size:20px;font-weight:900;background:#F5F3FF;outline:none}
+.otp-input:focus{border-color:#7C3AED;background:#fff}
+.pin-dots{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:#EDE9FE;border:2px solid #DDD6FE}
+.pin-dot.filled{background:#7C3AED;border-color:#7C3AED}
+.keypad{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.key{padding:14px;border-radius:12px;background:#F5F3FF;border:1px solid #EDE9FE;font-weight:800;font-size:18px;cursor:pointer;text-align:center}
+.key:active{background:#EDE9FE}
+.badge{font-size:9px;font-weight:900;padding:4px 8px;border-radius:999px}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+<div id="authScreen" class="auth-bg">
+  <div style="text-align:center;color:#fff;margin-bottom:16px">
+    <div class="logo"><img src="https://ik.imagekit.io/anyl9hsxh/FB_IMG_1773667740309.jpg?updatedAt=1789125101906" style="width:100%;height:100%;object-fit:contain"></div>
+    <div style="font-weight:900;font-size:22px">FLOOT WALLET</div>
+    <div style="font-size:12px;opacity:.9;margin-top:4px">Secure Wallet</div>
+  </div>
+
+  <div class="auth-card" id="stepEmail">
+    <div class="tabs"><div id="loginTab" class="tab active">Login</div><div id="signupTab" class="tab">Sign Up</div></div>
+    <div id="loginForm">
+      <div class="input-wrap"><i class="fa-solid fa-envelope"></i><input id="loginEmail" class="input" type="email" placeholder="Floot email"></div>
+      <div class="input-wrap"><i class="fa-solid fa-lock"></i><input id="loginPin" class="input" type="password" placeholder="Custom PIN (4-6 digits)" maxlength="6" inputmode="numeric"></div>
+      <button id="loginBtn" class="btn btn-purple">LOGIN WITH PIN</button>
+      <div id="loginMsg" class="small" style="text-align:center;margin-top:10px;min-height:16px"></div>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div style="background:#F5F3FF;border:1px solid #EDE9FE;border-radius:12px;padding:10px;margin-bottom:10px"><div style="font-size:11px;font-weight:800;color:#7C3AED"><i class="fa-solid fa-circle-info"></i> Existing Floot users only</div><div class="small">Email must already exist in Driver/Customer app</div></div>
+      <div class="input-wrap"><i class="fa-solid fa-envelope"></i><input id="signupEmail" class="input" type="email" placeholder="Existing Floot email"></div>
+      <button id="checkEmailBtn" class="btn btn-purple">CHECK & SEND OTP</button>
+      <div id="signupMsg" class="small" style="text-align:center;margin-top:10px;min-height:16px"></div>
+    </div>
+  </div>
+
+  <div class="auth-card" id="stepOtp" style="display:none">
+    <div style="text-align:center">
+      <div style="width:48px;height:48px;border-radius:14px;background:#F5F3FF;display:grid;place-items:center;margin:0 auto;color:#7C3AED"><i class="fa-solid fa-envelope-open"></i></div>
+      <div style="font-weight:900;margin-top:10px">Verify Email</div>
+      <div class="small" style="margin-top:4px">OTP sent to <b id="otpEmailDisplay">email</b></div>
+      <div id="demoOtpBox" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:8px;margin-top:10px;display:none;font-size:12px;color:#065F46">Demo OTP: <b id="demoOtpCode">------</b></div>
+    </div>
+    <div class="otp-box">
+      <input class="otp-input" maxlength="1" id="otp0"><input class="otp-input" maxlength="1" id="otp1"><input class="otp-input" maxlength="1" id="otp2"><input class="otp-input" maxlength="1" id="otp3"><input class="otp-input" maxlength="1" id="otp4"><input class="otp-input" maxlength="1" id="otp5">
+    </div>
+    <button id="verifyOtpBtn" class="btn btn-purple">VERIFY OTP</button>
+    <button id="resendOtpBtn" class="btn btn-ghost" style="margin-top:8px">Resend OTP</button>
+    <div id="otpMsg" class="small" style="text-align:center;margin-top:10px;min-height:16px"></div>
+    <button id="backToEmailBtn" class="btn btn-ghost" style="margin-top:8px;background:#fff">Back</button>
+  </div>
+
+  <div class="auth-card" id="stepPin" style="display:none">
+    <div style="text-align:center">
+      <div style="width:48px;height:48px;border-radius:14px;background:#F5F3FF;display:grid;place-items:center;margin:0 auto;color:#7C3AED"><i class="fa-solid fa-key"></i></div>
+      <div style="font-weight:900;margin-top:10px">Create Custom PIN</div>
+      <div class="small">Choose 4-6 digits • Only email is fixed</div>
+      <div style="background:#F5F3FF;border-radius:8px;padding:6px;margin-top:8px;font-size:11px"><b id="pinEmailDisplay">email</b> ✓ verified</div>
+    </div>
+    <div style="margin-top:14px">
+      <label style="font-size:11px;font-weight:800;color:#7C3AED">CUSTOM PIN (4-6 digits)</label>
+      <div class="input-wrap" style="margin-top:6px"><i class="fa-solid fa-lock"></i><input id="customPinInput" class="input" type="password" placeholder="e.g. 1234 or 847392" maxlength="6" inputmode="numeric"></div>
+      <label style="font-size:11px;font-weight:800;color:#7C3AED;margin-top:8px;display:block">CONFIRM PIN</label>
+      <div class="input-wrap" style="margin-top:6px"><i class="fa-solid fa-lock"></i><input id="customPinConfirm" class="input" type="password" placeholder="Confirm PIN" maxlength="6" inputmode="numeric"></div>
+    </div>
+    <div class="pin-dots" id="pinDots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+    <div class="keypad">
+      <div class="key" data-k="1">1</div><div class="key" data-k="2">2</div><div class="key" data-k="3">3</div>
+      <div class="key" data-k="4">4</div><div class="key" data-k="5">5</div><div class="key" data-k="6">6</div>
+      <div class="key" data-k="7">7</div><div class="key" data-k="8">8</div><div class="key" data-k="9">9</div>
+      <div class="key" data-k="clear" style="font-size:12px">CLEAR</div><div class="key" data-k="0">0</div><div class="key" data-k="del"><i class="fa-solid fa-delete-left"></i></div>
+    </div>
+    <button id="savePinBtn" class="btn btn-purple" style="margin-top:12px">SAVE PIN & CREATE WALLET</button>
+    <div id="pinMsg" class="small" style="text-align:center;margin-top:10px;min-height:16px"></div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
+  <div style="padding:16px;background:#fff;border-bottom:1px solid #F3F0FF;display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;gap:10px;align-items:center"><div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:grid;place-items:center;color:#fff;font-weight:900" id="avatar">F</div><div><div style="font-weight:900;font-size:14px" id="userEmail">email</div><div class="small"><span style="color:#10B981">● Verified</span> • Custom PIN • <span id="syncStatus" style="color:#7C3AED"></span></div></div></div>
+    <button id="logoutBtn" style="width:32px;height:32px;border-radius:10px;border:1px solid #F3F0FF;background:#fff;color:#8B8BA7"><i class="fa-solid fa-right-from-bracket"></i></button>
+  </div>
+  <div style="flex:1;overflow:auto;padding:16px;background:#FBFAFF;padding-bottom:80px">
+    <div class="hero"><div style="font-size:10px;opacity:.8">AVAILABLE BALANCE</div><div id="balance" style="font-size:34px;font-weight:900;margin-top:4px">₦0.00</div><div style="font-size:10px;margin-top:6px;opacity:.8" id="walletId">id</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><div style="background:rgba(255,255,255,.15);border-radius:10px;padding:8px"><div style="font-size:10px;opacity:.8">EARNED</div><div id="totalEarn" style="font-weight:900">₦0</div></div><div style="background:rgba(0,0,0,.15);border-radius:10px;padding:8px"><div style="font-size:10px;opacity:.8">SPENT</div><div id="totalSpent" style="font-weight:900">₦0</div></div></div><div style="margin-top:8px;background:rgba(0,0,0,.2);border-radius:8px;padding:6px 8px;display:flex;justify-content:space-between;font-size:11px"><span>BONUS (Non-withdrawable)</span><span id="bonusBalance" style="font-weight:900">₦0</span></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px"><button id="depositBtn" class="btn btn-purple" style="padding:10px"><i class="fa-solid fa-arrow-down"></i><br><span style="font-size:11px">Deposit</span></button><button id="withdrawBtn" class="btn btn-ghost" style="padding:10px"><i class="fa-solid fa-arrow-up"></i><br><span style="font-size:11px">Withdraw</span></button><button id="historyBtn" class="btn btn-ghost" style="padding:10px"><i class="fa-solid fa-clock"></i><br><span style="font-size:11px">History</span></button></div>
+    <div id="txList" style="margin-top:12px"></div>
+    <div class="card" style="margin-top:12px"><div style="font-weight:800;font-size:12px">Account</div><div id="linkedList" class="small" style="margin-top:6px">Verified Account</div><div id="driverInfo" style="display:none"></div></div>
+  </div>
+</div>
+
+<div id="actionModal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px"><div class="card" style="width:100%;max-width:360px;margin:0"><div style="display:flex;justify-content:space-between;align-items:center"><div id="modalTitle" style="font-weight:900">Action</div><button onclick="document.getElementById('actionModal').style.display='none'" style="width:32px;height:32px;border-radius:50%;background:#F5F3FF;border:1px solid #EDE9FE"><i class="fa-solid fa-xmark"></i></button></div><div id="modalBody" style="margin-top:12px"></div></div></div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyBVIJq5napb_egiLdKhGtySZoPeLUkY9Q4",authDomain:"floot-delivery.firebaseapp.com",projectId:"floot-delivery",storageBucket:"floot-delivery.firebasestorage.app",messagingSenderId:"786230599434",appId:"1:786230599434:web:e1913bd8c2e69a7e1c64f3"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+let currentEmail=null, currentWalletId=null, walletData=null, driverData=null, allTx=[], filter="all";
+let generatedOtp=null, otpExpiry=null, tempEmail=null;
+let walletUnsub=null, txUnsub=null, driverUnsub=null;
+
+function emailToId(email){ return email.toLowerCase().replace(/[^a-z0-9]/g,"_"); }
+
+const EMAILJS_CONFIG={publicKey:"YOUR_PUBLIC_KEY",serviceId:"YOUR_SERVICE_ID",templateId:"YOUR_TEMPLATE_ID",enabled:false};
+try{ if(EMAILJS_CONFIG.publicKey!=="YOUR_PUBLIC_KEY"){ emailjs.init(EMAILJS_CONFIG.publicKey); EMAILJS_CONFIG.enabled=true; } }catch(e){}
+
+async function sendRealOtpEmail(toEmail, otp){
+  if(!EMAILJS_CONFIG.enabled) return {success:false, demo:true};
+  try{
+    await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {to_email:toEmail, otp_code:otp, app_name:"Floot Wallet"});
+    return {success:true};
+  }catch(e){ return {success:false, demo:true, error:e.message}; }
+}
+
+async function emailExistsInFloot(email){
+  const lower=email.toLowerCase();
+  const id=emailToId(lower);
+  const checks=[
+    db.collection("wallets").doc(id).get().then(s=>s.exists).catch(()=>false),
+    db.collection("drivers").doc(id).get().then(s=>s.exists).catch(()=>false),
+    db.collection("customers").doc(id).get().then(s=>s.exists).catch(()=>false),
+    db.collection("users").doc(id).get().then(s=>s.exists).catch(()=>false),
+    db.collection("drivers").where("email","==",lower).limit(1).get().then(s=>!s.empty).catch(()=>false),
+    db.collection("customers").where("email","==",lower).limit(1).get().then(s=>!s.empty).catch(()=>false),
+    db.collection("users").where("email","==",lower).limit(1).get().then(s=>!s.empty).catch(()=>false)
+  ];
+  const results=await Promise.all(checks);
+  return results.some(r=>r===true);
+}
+
+// Tabs
+document.getElementById("loginTab").onclick=()=>{ document.getElementById("loginTab").classList.add("active"); document.getElementById("signupTab").classList.remove("active"); document.getElementById("loginForm").style.display="block"; document.getElementById("signupForm").style.display="none"; };
+document.getElementById("signupTab").onclick=()=>{ document.getElementById("signupTab").classList.add("active"); document.getElementById("loginTab").classList.remove("active"); document.getElementById("loginForm").style.display="none"; document.getElementById("signupForm").style.display="block"; };
+
+// Check email & send OTP
+document.getElementById("checkEmailBtn").onclick=async()=>{
+  const email=document.getElementById("signupEmail").value.trim().toLowerCase();
+  const msg=document.getElementById("signupMsg");
+  const btn=document.getElementById("checkEmailBtn");
+  if(!email.includes("@")){ msg.textContent="❌ Enter valid email"; msg.style.color="#DC2626"; return; }
+  msg.style.color="#8B8BA7"; msg.textContent="Checking Floot services..."; btn.disabled=true; btn.textContent="Checking...";
+  try{
+    const exists=await emailExistsInFloot(email);
+    if(!exists){ msg.innerHTML="❌ Email not found in Floot.<br>Register first in Driver/Customer app."; msg.style.color="#DC2626"; btn.disabled=false; btn.textContent="CHECK & SEND OTP"; return; }
+    generatedOtp=Math.floor(100000+Math.random()*900000).toString();
+    otpExpiry=Date.now()+10*60*1000;
+    tempEmail=email;
+    try{ await db.collection("wallet_otps").doc(emailToId(email)).set({email,otp:generatedOtp,createdAt:new Date().toISOString(),expiresAt:new Date(otpExpiry).toISOString(),verified:false}); }catch(e){}
+    msg.textContent="Sending OTP to "+email+"...";
+    const emailRes=await sendRealOtpEmail(email, generatedOtp);
+    if(emailRes.success){
+      document.getElementById("demoOtpBox").style.display="none";
+      document.getElementById("otpMsg").textContent="✓ OTP sent to real email: "+email;
+    } else {
+      document.getElementById("demoOtpBox").style.display="block";
+      document.getElementById("demoOtpCode").textContent=generatedOtp;
+      document.getElementById("otpMsg").innerHTML="Demo OTP: <b>"+generatedOtp+"</b> • Valid 10 mins<br><small>Real email disabled - add EmailJS keys for real emails</small>";
+    }
+    document.getElementById("stepEmail").style.display="none";
+    document.getElementById("stepOtp").style.display="block";
+    document.getElementById("otpEmailDisplay").textContent=email;
+    document.querySelectorAll(".otp-input").forEach(i=>i.value="");
+    document.getElementById("otp0").focus();
+  }catch(e){ msg.textContent="❌ "+e.message; msg.style.color="#DC2626"; }
+  finally{ btn.disabled=false; btn.textContent="CHECK & SEND OTP"; }
+};
+
+// OTP inputs auto-focus
+document.querySelectorAll(".otp-input").forEach((input, idx)=>{
+  input.addEventListener("input", ()=>{
+    if(input.value && idx<5) document.getElementById("otp"+(idx+1)).focus();
+  });
+  input.addEventListener("keydown", (e)=>{
+    if(e.key==="Backspace" && !input.value && idx>0) document.getElementById("otp"+(idx-1)).focus();
+  });
+});
+
+function getOtpFromInputs(){ return Array.from(document.querySelectorAll(".otp-input")).map(i=>i.value).join(""); }
+
+document.getElementById("verifyOtpBtn").onclick=async()=>{
+  const entered=getOtpFromInputs();
+  const msg=document.getElementById("otpMsg");
+  if(entered.length!==6){ msg.textContent="Enter 6 digits"; msg.style.color="#DC2626"; return; }
+  if(Date.now()>otpExpiry){ msg.textContent="OTP expired"; msg.style.color="#DC2626"; return; }
+  if(entered!==generatedOtp){ msg.textContent="❌ Invalid OTP"; msg.style.color="#DC2626"; return; }
+  msg.textContent="✓ Verified!"; msg.style.color="#10B981";
+  try{ await db.collection("wallet_otps").doc(emailToId(tempEmail)).update({verified:true}); }catch(e){}
+  setTimeout(()=>{
+    document.getElementById("stepOtp").style.display="none";
+    document.getElementById("stepPin").style.display="block";
+    document.getElementById("pinEmailDisplay").textContent=tempEmail;
+    document.getElementById("customPinInput").value=""; document.getElementById("customPinConfirm").value="";
+    updatePinDots();
+  },500);
+};
+
+document.getElementById("resendOtpBtn").onclick=async()=>{
+  generatedOtp=Math.floor(100000+Math.random()*900000).toString();
+  otpExpiry=Date.now()+10*60*1000;
+  try{ await db.collection("wallet_otps").doc(emailToId(tempEmail)).set({email:tempEmail,otp:generatedOtp,createdAt:new Date().toISOString(),expiresAt:new Date(otpExpiry).toISOString(),verified:false}); }catch(e){}
+  const res=await sendRealOtpEmail(tempEmail, generatedOtp);
+  if(res.success){
+    document.getElementById("demoOtpBox").style.display="none";
+    document.getElementById("otpMsg").textContent="✓ New OTP sent to "+tempEmail;
+  } else {
+    document.getElementById("demoOtpBox").style.display="block";
+    document.getElementById("demoOtpCode").textContent=generatedOtp;
+    document.getElementById("otpMsg").innerHTML="New OTP: <b>"+generatedOtp+"</b> (demo)";
+  }
+};
+
+document.getElementById("backToEmailBtn").onclick=()=>{ document.getElementById("stepOtp").style.display="none"; document.getElementById("stepEmail").style.display="block"; };
+
+// PIN logic
+function updatePinDots(){
+  const val=document.getElementById("customPinInput").value;
+  document.querySelectorAll("#pinDots .pin-dot").forEach((d,i)=>{ d.classList.toggle("filled", i<val.length); });
+}
+
+document.getElementById("customPinInput").addEventListener("input", (e)=>{
+  let v=e.target.value.replace(/[^0-9]/g,"").slice(0,6);
+  e.target.value=v; updatePinDots();
+});
+document.getElementById("customPinConfirm").addEventListener("input", (e)=>{
+  let v=e.target.value.replace(/[^0-9]/g,"").slice(0,6);
+  e.target.value=v;
+});
+
+document.querySelectorAll(".key").forEach(k=>{
+  k.onclick=()=>{
+    const v=k.dataset.k;
+    const active=document.activeElement;
+    const isConfirm=active && active.id==="customPinConfirm";
+    const target=isConfirm?document.getElementById("customPinConfirm"):document.getElementById("customPinInput");
+    if(v==="clear"){ target.value=""; if(!isConfirm) updatePinDots(); return; }
+    if(v==="del"){ target.value=target.value.slice(0,-1); if(!isConfirm) updatePinDots(); return; }
+    if(target.value.length<6){ target.value+=v; if(!isConfirm) updatePinDots(); }
+  };
+});
+
+document.getElementById("savePinBtn").onclick=()=>{ 
+  const pinA=document.getElementById("customPinInput").value.trim();
+  const pinB=document.getElementById("customPinConfirm").value.trim();
+  const msg=document.getElementById("pinMsg");
+  if(pinA.length<4){ msg.textContent="❌ PIN min 4 digits"; msg.style.color="#DC2626"; return; }
+  if(pinA.length>6){ msg.textContent="❌ PIN max 6 digits"; msg.style.color="#DC2626"; return; }
+  if(!/^[0-9]{4,6}$/.test(pinA)){ msg.textContent="❌ PIN numbers only (4-6)"; msg.style.color="#DC2626"; return; }
+  if(pinA!==pinB){ msg.textContent="❌ PINs don't match"; msg.style.color="#DC2626"; return; }
+  saveWalletPin(pinA);
+};
+
+async function saveWalletPin(pin){
+  const msg=document.getElementById("pinMsg");
+  msg.style.color="#8B8BA7"; msg.textContent="Creating wallet...";
+  const email=tempEmail;
+  const walletId=emailToId(email);
+  let balance=0, totalEarn=0, linkedDrivers=[], linkedCustomers=[];
+  let existing=null;
+  // FIX: Pull balance from drivers collection if exists
+  try{
+    const driverSnap = await db.collection("drivers").doc(walletId).get();
+    if(driverSnap.exists){
+      const dd = driverSnap.data();
+      balance = Number(dd.walletBalance||0);
+      totalEarn = Number(dd.totalEarnings||0);
+      
+    }
+  }catch(e){ console.log("driver pull error", e); }
+  
+  try{ existing=await db.collection("wallets").doc(walletId).get(); if(existing.exists){ const d=existing.data(); if(balance===0) balance=Number(d.balance||0); if(totalEarn===0) totalEarn=Number(d.totalEarnings||0); linkedDrivers=d.linkedDriverIds||[]; linkedCustomers=d.linkedCustomerIds||[]; } }catch(e){}
+  try{ const ds=await db.collection("drivers").where("email","==",email).limit(5).get(); ds.forEach(doc=>{ if(!linkedDrivers.includes(doc.id)) linkedDrivers.push(doc.id); }); }catch(e){}
+  try{ const cs=await db.collection("customers").where("email","==",email).limit(5).get(); cs.forEach(doc=>{ if(!linkedCustomers.includes(doc.id)) linkedCustomers.push(doc.id); }); }catch(e){}
+  try{ const us=await db.collection("users").where("email","==",email).limit(5).get(); us.forEach(doc=>{ if(!linkedCustomers.includes(doc.id)) linkedCustomers.push(doc.id); }); }catch(e){}
+
+  try{
+    await db.collection("wallets").doc(walletId).set({
+      email:email, balance:balance, totalEarnings:totalEarn, totalDeposits: existing && existing.exists? (existing.data().totalDeposits||0):0,
+      totalWithdrawals:0, totalSpent:0, totalFeesPaid: existing && existing.exists? (existing.data().totalFeesPaid||0):0,
+      linkedDriverIds:linkedDrivers, linkedCustomerIds:linkedCustomers,
+      createdAt: existing && existing.exists? existing.data().createdAt : new Date().toISOString(),
+      updatedAt:new Date().toISOString(), isBlocked:false, pinCreated:true
+    }, {merge:true});
+  }catch(e){ console.log("wallet set error", e.message); }
+
+  try{
+    await db.collection("wallet_auth").doc(walletId).set({email:email,pin:pin,pinCreatedAt:new Date().toISOString(),verified:true});
+  }catch(e){
+    console.log("auth set error", e.message);
+    localStorage.setItem("floot_wallet_auth_"+walletId, JSON.stringify({email:email,pin:pin}));
+  }
+  localStorage.setItem("floot_wallet_auth_"+walletId, JSON.stringify({email:email,pin:pin}));
+  localStorage.setItem("floot_wallet_session", JSON.stringify({email:email}));
+  msg.textContent="✓ Wallet created! Logging in..."; msg.style.color="#10B981";
+  setTimeout(()=>openWallet(email),800);
+}
+
+// LOGIN
+document.getElementById("loginBtn").onclick=async()=>{
+  const email=document.getElementById("loginEmail").value.trim().toLowerCase();
+  const pin=document.getElementById("loginPin").value.trim();
+  const msg=document.getElementById("loginMsg");
+  const btn=document.getElementById("loginBtn");
+  if(!email.includes("@")){ msg.textContent="❌ Enter valid email"; msg.style.color="#DC2626"; return; }
+  if(pin.length<4 || pin.length>6){ msg.textContent="❌ PIN 4-6 digits"; msg.style.color="#DC2626"; return; }
+  msg.style.color="#8B8BA7"; msg.textContent="Verifying..."; btn.disabled=true; btn.textContent="Verifying...";
+  try{
+    const walletId=emailToId(email);
+    let auth=null;
+    try{ const snap=await db.collection("wallet_auth").doc(walletId).get(); if(snap.exists) auth=snap.data(); }catch(e){}
+    if(!auth){
+      const local=JSON.parse(localStorage.getItem("floot_wallet_auth_"+walletId)||"null");
+      if(local) auth=local;
+    }
+    if(!auth){ msg.textContent="❌ No wallet PIN found. Sign Up first."; msg.style.color="#DC2626"; btn.disabled=false; btn.textContent="LOGIN WITH PIN"; return; }
+    if(auth.pin!==pin){ msg.textContent="❌ Wrong PIN"; msg.style.color="#DC2626"; btn.disabled=false; btn.textContent="LOGIN WITH PIN"; return; }
+    try{ const w=await db.collection("wallets").doc(walletId).get(); if(w.exists && w.data().isBlocked){ msg.textContent="❌ Wallet blocked"; msg.style.color="#DC2626"; btn.disabled=false; btn.textContent="LOGIN WITH PIN"; return; } }catch(e){}
+    localStorage.setItem("floot_wallet_session", JSON.stringify({email:email}));
+    msg.textContent="✓ Success!"; msg.style.color="#10B981";
+    setTimeout(()=>openWallet(email),500);
+  }catch(e){ msg.textContent="❌ "+e.message; msg.style.color="#DC2626"; }
+  finally{ btn.disabled=false; btn.textContent="LOGIN WITH PIN"; }
+};
+
+function openWallet(email){
+  currentEmail=email; currentWalletId=emailToId(email);
+  document.getElementById("authScreen").style.display="none";
+  document.getElementById("mainApp").style.display="flex";
+  document.getElementById("userEmail").textContent=email;
+  document.getElementById("walletId").textContent=currentWalletId;
+  document.getElementById("avatar").textContent=email[0].toUpperCase();
+  initWalletListener();
+}
+
+function initWalletListener(){
+  if(walletUnsub) walletUnsub(); if(txUnsub) txUnsub(); if(driverUnsub) driverUnsub();
+  
+  // 1. Listen to wallets collection
+  try{
+    walletUnsub=db.collection("wallets").doc(currentWalletId).onSnapshot(snap=>{
+      if(!snap.exists){ walletData={email:currentEmail,balance:0,totalEarnings:0,totalSpent:0,linkedDriverIds:[],linkedCustomerIds:[]}; }
+      else { walletData=snap.data(); }
+      updateUI();
+    });
+  }catch(e){ console.log("wallet listener error", e); }
+  
+  // 2. FIX: Also listen to drivers collection for real-time admin top-up and earnings
+  try{
+    driverUnsub=db.collection("drivers").doc(currentWalletId).onSnapshot(snap=>{
+      if(snap.exists){
+        driverData=snap.data();
+        
+        document.getElementById("syncStatus").textContent=""+(driverData.walletBalance||0);
+        updateUI();
+        // Show driver info
+        const di = document.getElementById("driverInfo");
+        if(di){
+          di.innerHTML = `<b>Driver DB:</b> ${driverData.name||''} • Bike: ${driverData.bikeNumber||''}<br>Wallet: ₦${Number(driverData.walletBalance||0).toLocaleString()} • Earnings: ₦${Number(driverData.totalEarnings||0).toLocaleString()} • Trips: ${driverData.totalTrips||0}`;
+        }
+      }
+    });
+  }catch(e){ console.log("driver listener error", e); }
+
+  try{
+    txUnsub=db.collection(`wallets/${currentWalletId}/transactions`).orderBy("createdAt","desc").limit(50).onSnapshot(snap=>{
+      allTx=snap.docs.map(d=>d.data());
+      const list=document.getElementById("txList");
+      if(allTx.length===0){ list.innerHTML='<div style="text-align:center;padding:20px;color:#8B8BA7">No transactions yet</div>'; return; }
+      list.innerHTML=allTx.map(t=>{ const isPos=Number(t.amount||0)>=0; const col=isPos?"#10B981":"#EF4444"; return `<div style="padding:12px;border:1px solid #F3F0FF;border-radius:12px;margin-bottom:8px;background:#fff;display:flex;justify-content:space-between"><div><div style="font-weight:800;font-size:13px">${(t.type||"").toUpperCase()} • ${t.reason||""}</div><div style="font-size:10px;color:#8B8BA7">${new Date(t.createdAt).toLocaleString()}</div></div><div style="text-align:right"><div style="font-weight:900;color:${col}">${isPos?"+":""}₦${Number(t.amount||0).toLocaleString()}</div><div style="font-size:10px;color:#8B8BA7">Bal ₦${Number(t.newBalance||0).toLocaleString()}</div></div></div>`; }).join("");
+    });
+  }catch(e){ console.log("tx listener error", e); }
+}
+
+function updateUI(){
+  // Merge walletData and driverData - driverData takes priority for balance and earnings
+  let balance = 0, earned = 0, spent = 0;
+  let linkedDrivers = [], linkedCustomers = [];
+  
+  if(walletData){
+    balance = Number(walletData.balance||0);
+    earned = Number(walletData.totalEarnings||0);
+    spent = Number((walletData.totalSpent||0)+(walletData.totalWithdrawals||0)+(walletData.totalFeesPaid||0));
+    linkedDrivers = walletData.linkedDriverIds||[];
+    linkedCustomers = walletData.linkedCustomerIds||[];
+  }
+  
+  // If driver data exists, use its walletBalance and totalEarnings (real source of truth)
+  if(driverData){
+    if(typeof driverData.walletBalance !== 'undefined'){
+      balance = Number(driverData.walletBalance||0);
+    }
+    if(typeof driverData.totalEarnings !== 'undefined'){
+      earned = Number(driverData.totalEarnings||0);
+    }
+    if(typeof driverData.totalFeesPaid !== 'undefined'){
+      spent = Number(driverData.totalFeesPaid||0);
+    }
+    // Ensure linked
+    if(driverData.id && !linkedDrivers.includes(driverData.id)){
+      linkedDrivers.push(driverData.id);
+    }
+  }
+  
+  document.getElementById("balance").textContent="₦"+Number(balance).toLocaleString()+".00";
+  document.getElementById("totalEarn").textContent="₦"+Number(earned).toLocaleString();
+  document.getElementById("totalSpent").textContent="₦"+Number(spent).toLocaleString();
+  document.getElementById("linkedList").innerHTML=linkedDrivers.length+" Drivers • "+linkedCustomers.length+" Customers<br>Email <b>"+(walletData?.email||driverData?.email||currentEmail)+"</b> <span style='color:#10B981'></span>";
+}
+
+document.getElementById("logoutBtn").onclick=()=>{ if(walletUnsub) walletUnsub(); if(txUnsub) txUnsub(); if(driverUnsub) driverUnsub(); localStorage.removeItem("floot_wallet_session"); location.reload(); };
+document.getElementById("depositBtn").onclick=()=>{ const amt=prompt("Deposit amount"); if(!amt) return; const n=Number(amt); if(n<=0) return alert("Invalid"); db.collection(`wallets/${currentWalletId}/deposit_requests`).add({amount:n,email:currentEmail,status:"pending",createdAt:new Date().toISOString()}).then(()=>alert("Deposit request ₦"+n.toLocaleString()+" sent. Admin approves in Wallets tab")).catch(e=>alert(e.message)); };
+document.getElementById("withdrawBtn").onclick=()=>{
+  const amt=prompt("Withdraw amount (Bonus cannot be withdrawn)");
+  if(!amt) return;
+  const n=Number(amt);
+  if(n<=0) return alert("Invalid");
+  // BONUS LOGIC: Bonus cannot be withdrawn
+  let withdrawable = 0;
+  if(walletData) withdrawable = Number(walletData.balance||0); // only main balance is withdrawable
+  if(driverData) withdrawable = Number(driverData.walletBalance||0); // driver wallet is withdrawable balance
+  // If bonus exists, subtract it
+  let bonus = 0;
+  if(walletData && walletData.bonusBalance) bonus = Number(walletData.bonusBalance||0);
+  // withdrawable should not include bonus
+  if(n > withdrawable){
+    alert("❌ Insufficient withdrawable balance.\nWithdrawable: ₦"+withdrawable.toLocaleString()+"\nBonus (non-withdrawable): ₦"+bonus.toLocaleString()+"\nBonus can only be used for delivery fees, not withdrawal.");
+    return;
+  }
+  const bank=prompt("Bank - Account - Name");
+  if(!bank) return;
+  db.collection(`wallets/${currentWalletId}/withdrawal_requests`).add({amount:n,bank:bank,email:currentEmail,status:"pending",createdAt:new Date().toISOString(),type:"withdrawal"}).then(()=>alert("Withdrawal request ₦"+n.toLocaleString()+" sent")).catch(e=>alert(e.message));
+};
+document.getElementById("historyBtn").onclick=()=>document.getElementById("txList").scrollIntoView({behavior:"smooth"});
+
+(function(){
+  const saved=JSON.parse(localStorage.getItem("floot_wallet_session")||"null");
+  if(saved && saved.email){
+    const walletId=emailToId(saved.email);
+    db.collection("wallet_auth").doc(walletId).get().then(snap=>{
+      if(snap.exists) openWallet(saved.email);
+      else {
+        const local=localStorage.getItem("floot_wallet_auth_"+walletId);
+        if(local) openWallet(saved.email);
+      }
+    }).catch(()=>{ const local=localStorage.getItem("floot_wallet_auth_"+walletId); if(local) openWallet(saved.email); });
+  }
+})();
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
